@@ -1,0 +1,90 @@
+<html>
+
+<head>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <script src="van.min.js"></script>
+  <script>
+    const { div } = van.tags
+
+    const dom = div({ class: 'dom' })
+    const container = div({ class: 'container' })
+    let towers = [[], [], []]
+    const holding = van.state('')
+    const status = van.state('In progress')
+    const tower_length = 5
+
+    const init = () => {
+      towers = [[], [], []]
+      for (let i = tower_length; i > 0; i--)
+        towers[0].push(i)
+    }
+    init()
+
+    const win_check = () => {
+      if (towers[2].length < tower_length) return false;
+      for (let i = 0; i < towers[2].length - 1; i++) {
+        if (towers[2][i] > towers[2][i + 1]) continue;
+        else return false;
+      }
+      return true;
+    }
+
+    for (let i = 0; i < 3; i++) {
+      van.add(container, div({
+        class: 'tower', onclick: () => {
+          const length = towers[i].length
+          if (holding.val != '') {
+            if (length == 0) { }
+            else if (towers[i][length - 1] < holding.val) return;
+            towers[i].push(holding.val)
+            holding.val = '';
+          }
+          else if (towers[i] != '')
+            holding.val = towers[i].pop()
+
+          if (win_check()) status.val = 'Win!'
+        }
+      }, () => {
+        holding.val;
+        return div(towers[i].map(j => {
+          const layer = div({ class: 'layer' })
+          for (let k = 0; k < j; k++) {
+            const box = div({
+              class: 'box', style: () => {
+                return `width:${5 / tower_length}rem; height:${5 / tower_length}rem;`;
+              }
+            })
+            van.add(layer, box)
+          }
+          return layer
+        }).reverse())
+      }))
+    }
+
+    const holding_text = div(() => {
+      let text = ''
+      if (holding.val == '') text = 'nothing';
+      else if (holding.val == 1) text = holding.val + ' box';
+      else text = holding.val + ' boxes';
+
+      return div({ style: 'color:white; margin-bottom: 1rem;' }, 'Holding: ', text)
+    })
+
+    const status_text = div({ style: 'color: #888888; font-size: 2rem; margin-bottom: 3rem;' }, status)
+    const reset = div({
+      onclick: () => {
+        init()
+        status.val = 'In progress'
+        holding.val = 0
+      }, style: 'color:white; border: 1px solid white; padding: 0.4rem;'
+    }, 'Reset');
+
+    van.add(dom, container, holding_text, status_text, reset)
+    van.add(document.body, dom)
+  </script>
+</body>
+
+</html>
